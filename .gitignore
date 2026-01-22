@@ -41,6 +41,10 @@ logs/
 storage/
 gupshup_logs/
 
+# ================== DB DUMP ==================
+# Папка для дампа БД (локальная разработка)
+db_dump/
+
 # ================== UPLOADED FILES ==================
 PHPExcel/*.xlsx
 page_loader_elehant/files/
