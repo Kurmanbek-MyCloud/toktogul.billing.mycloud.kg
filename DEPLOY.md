@@ -44,12 +44,14 @@ $dbconfig['db_server'] = 'db';
 $dbconfig['db_port'] = ':3306';
 $dbconfig['db_username'] = 'root';
 $dbconfig['db_password'] = 'root';
-$dbconfig['db_name'] = 'toktogul_bill2';
+$dbconfig['db_name'] = 'ИМЯ_ВАШЕЙ_БД';
 $dbconfig['db_type'] = 'mysqli';
 $dbconfig['db_status'] = 'true';
 $dbconfig['db_hostname'] = $dbconfig['db_server'] . $dbconfig['db_port'];
 EOF
 ```
+
+> **Важно:** Замените `ИМЯ_ВАШЕЙ_БД` на имя базы данных из docker-compose.yml (параметр `MYSQL_DATABASE`)
 
 #### Шаг 4. Создание CSRF секрета
 
@@ -97,9 +99,21 @@ docker-compose logs -f
 docker-compose ps
 ```
 
-#### Шаг 8. Проверка
+#### Шаг 8. Инициализация привилегий пользователей (ВАЖНО!)
+
+После импорта БД необходимо создать файлы привилегий:
+
+```bash
+docker-compose exec web php scripts/init-privileges.php
+```
+
+Этот скрипт создаст файлы `user_privileges_X.php` и `sharing_privileges_X.php` для всех пользователей.
+
+#### Шаг 9. Проверка
 
 Откройте в браузере: **http://localhost:8000**
+
+Логин по умолчанию: `admin` / `admin`
 
 ---
 
@@ -125,7 +139,7 @@ $dbconfig['db_server'] = 'db';
 $dbconfig['db_port'] = ':3306';
 $dbconfig['db_username'] = 'root';
 $dbconfig['db_password'] = 'root';
-$dbconfig['db_name'] = 'toktogul_bill2';
+$dbconfig['db_name'] = 'ИМЯ_ВАШЕЙ_БД';
 $dbconfig['db_type'] = 'mysqli';
 $dbconfig['db_status'] = 'true';
 $dbconfig['db_hostname'] = $dbconfig['db_server'] . $dbconfig['db_port'];
@@ -135,11 +149,14 @@ echo '<?php $secret = "'$(openssl rand -hex 20)'";' > config.csrf-secret.php
 
 mkdir -p cache/images cache/import cache/upload storage logs user_privileges db_dump
 
-# Скопируйте дамп и раскомментируйте строку в docker-compose.yml
+# Скопируйте дамп в db_dump/ и раскомментируйте строку в docker-compose.yml
 # cp /path/to/dump.sql db_dump/dump.sql
 
 # Запуск
 docker-compose up -d
+
+# ВАЖНО: После запуска инициализируйте привилегии
+docker-compose exec web php scripts/init-privileges.php
 ```
 
 ---
@@ -164,10 +181,13 @@ docker-compose logs -f db     # логи MariaDB
 docker-compose exec web bash
 
 # Зайти в MySQL
-docker-compose exec db mysql -u root -proot toktogul_bill2
+docker-compose exec db mysql -u root -proot ИМЯ_БД
 
 # Импортировать дамп вручную (если БД уже запущена)
-docker-compose exec -T db mysql -u root -proot toktogul_bill2 < db_dump/dump.sql
+docker-compose exec -T db mysql -u root -proot ИМЯ_БД < db_dump/dump.sql
+
+# Инициализация привилегий после импорта БД
+docker-compose exec web php scripts/init-privileges.php
 
 # Пересоздать контейнеры (если изменили Dockerfile)
 docker-compose up -d --build
@@ -190,11 +210,26 @@ docker-compose down -v
 - Port: `3307`
 - User: `root`
 - Password: `root`
-- Database: `toktogul_bill2`
+- Database: `ИМЯ_БД` (из docker-compose.yml)
 
 ---
 
 ## Решение проблем
+
+### Ошибка 500 после логина
+
+**Причина:** Отсутствуют файлы привилегий пользователей.
+
+**Решение:**
+```bash
+docker-compose exec web php scripts/init-privileges.php
+```
+
+### Ошибка "Class 'Vtiger_Cache_Connector' not found"
+
+**Причина:** Отсутствует файл `includes/runtime/cache/Connector.php`.
+
+**Решение:** Файл уже включен в репозиторий. Если ошибка появилась, убедитесь что git pull прошел успешно.
 
 ### Ошибка "Access denied for user"
 
@@ -210,13 +245,17 @@ docker-compose logs web
 docker-compose exec web chown -R www-data:www-data /var/www/html/cache
 docker-compose exec web chown -R www-data:www-data /var/www/html/storage
 docker-compose exec web chown -R www-data:www-data /var/www/html/logs
+docker-compose exec web chown -R www-data:www-data /var/www/html/user_privileges
 ```
 
-### БД не импортируется
+### БД не импортируется автоматически
 
 ```bash
 # Импортируйте вручную
-docker-compose exec -T db mysql -u root -proot toktogul_bill2 < db_dump/dump.sql
+docker-compose exec -T db mysql -u root -proot ИМЯ_БД < db_dump/dump.sql
+
+# Затем инициализируйте привилегии
+docker-compose exec web php scripts/init-privileges.php
 ```
 
 ### Контейнер db не запускается (Mac M1/M2)
@@ -226,6 +265,13 @@ docker-compose exec -T db mysql -u root -proot toktogul_bill2 < db_dump/dump.sql
 ```bash
 docker-compose down -v
 docker-compose up -d
+```
+
+### Сброс пароля администратора
+
+```bash
+# Сбросить пароль admin на 'admin'
+docker-compose exec web php -r "echo crypt('admin', '\$1\$ad000000\$');" | xargs -I {} docker-compose exec db mysql -u root -proot ИМЯ_БД -e "UPDATE vtiger_users SET user_password='{}' WHERE user_name='admin';"
 ```
 
 ---
@@ -239,13 +285,34 @@ docker-compose up -d
 ├── config.csrf-secret.php  # CSRF секрет (НЕ в git)
 ├── docker-compose.yml      # Docker конфигурация
 ├── Dockerfile              # PHP + Apache образ
+├── scripts/
+│   └── init-privileges.php # Скрипт инициализации привилегий
+├── includes/
+│   └── runtime/
+│       └── cache/
+│           └── Connector.php  # Системный файл кэша (в git)
 ├── db_dump/                # Папка для дампа БД (НЕ в git)
+├── user_privileges/        # Привилегии пользователей (НЕ в git, генерируются)
 ├── modules/                # Модули CRM
 ├── layouts/                # Темы и шаблоны
 ├── languages/              # Переводы
 ├── include/                # Системные файлы
 └── libraries/              # Библиотеки
 ```
+
+---
+
+## Чеклист после клонирования
+
+- [ ] Скопировать `config.inc.php.example` → `config.inc.php`
+- [ ] Создать `config_override.php` с настройками БД
+- [ ] Создать `config.csrf-secret.php`
+- [ ] Создать директории: `cache/`, `storage/`, `logs/`, `user_privileges/`, `db_dump/`
+- [ ] Положить дамп БД в `db_dump/`
+- [ ] Раскомментировать volume для `db_dump` в `docker-compose.yml`
+- [ ] Запустить `docker-compose up -d`
+- [ ] **Запустить `docker-compose exec web php scripts/init-privileges.php`**
+- [ ] Открыть http://localhost:8000
 
 ---
 
@@ -312,6 +379,13 @@ mysql -u billing_user -p toktogul_bill2 < dump.sql
 sudo chown -R www-data:www-data /var/www/toktogul.billing.mycloud.kg
 sudo chmod -R 755 /var/www/toktogul.billing.mycloud.kg
 sudo chmod -R 775 cache/ storage/ logs/ user_privileges/
+```
+
+### 5. Инициализация привилегий
+
+```bash
+cd /var/www/toktogul.billing.mycloud.kg
+php scripts/init-privileges.php
 ```
 
 ---

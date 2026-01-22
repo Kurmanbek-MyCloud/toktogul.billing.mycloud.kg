@@ -1,5 +1,6 @@
 services:
   web:
+    container_name: kurmanbek_git_toktogul_web
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,23 +12,24 @@ services:
       - db
     environment:
       - DB_HOST=db
-      - DB_NAME=toktogul_bill2
+      - DB_NAME=kurmanbek_git_toktogul
       - DB_USER=root
       - DB_PASSWORD=root
 
   db:
+    container_name: kurmanbek_git_toktogul_db
     image: mariadb:10.6
     platform: linux/arm64
     ports:
       - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: toktogul_bill2
+      MYSQL_DATABASE: kurmanbek_git_toktogul
     volumes:
-      - mysql_data:/var/lib/mysql
+      - kurmanbek_git_toktogul_data:/var/lib/mysql
       # Положите дамп БД в ./db_dump/ и раскомментируйте:
-      # - ./db_dump:/docker-entrypoint-initdb.d
+      - ./db_dump:/docker-entrypoint-initdb.d
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --sql-mode=""
 
 volumes:
-  mysql_data:
+  kurmanbek_git_toktogul_data:

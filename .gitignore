@@ -35,6 +35,9 @@ user_privileges/
 cache/
 logs/
 *.log
+# Исключение: системный файл кэша (нужен для работы)
+!includes/runtime/cache/
+!includes/runtime/cache/Connector.php
 
 # ================== STORAGE ==================
 # Загруженные файлы и данные
