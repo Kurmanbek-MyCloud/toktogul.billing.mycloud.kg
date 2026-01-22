@@ -1,0 +1,11 @@
+.account-label, .balance-label, .debt-label {
+    font-weight: bold;
+    font-size: 12px;
+    color: slategray;
+    text-transform: uppercase;
+}
+
+.account-value, .balance-value, .debt-value {
+    font-size: 12px;
+    font-weight: bold;
+}

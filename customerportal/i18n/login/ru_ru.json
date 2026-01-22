@@ -1,0 +1,19 @@
+{
+    "E-mail":"E-mail",
+    "Password":"Пароль",
+    "Please provide your portal credentials":"Введите учетные данные пользователя портала",
+    "Sign in":"Войти",
+    "Language":"Язык",
+    "Forgot password?":"Забыли пароль?",
+    "Forgot Password":"Забыли пароль",
+    "Submit":"Отправить",
+    "Please enter a valid email address": "Введите корректный адрес",
+    "Cannot connect to Server.Please configure your site url in provided config file.":"Не удалось подключиться к серверу. Проверьте URL в конфигурационном файле.",
+    "Could not authenticate":"Не удалось авторизоваться",
+    "The email or password you entered is incorrect":"Неверный логин и/или пароль",
+    "Portal access has not been enabled for this account.":"Доступ к порталу для этой учетной записи не включен",
+    "Access to the portal was disabled on ":"Доступ к порталу отключен",
+    "Contacts module is disabled!":"Модуль Контакты отключен!",
+    "Customer portal not available with the current edition, please upgrade!!": "Клиентский портал не доступен для данной версии. Необходимо обновиться!"
+    
+}

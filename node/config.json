@@ -1,0 +1,9 @@
+{
+	"crmlogin":"admin",
+	"key" : "BxEZilsTVwrDQrl9",
+	"CRM_URL":"https://etalon.billing.mycloud.kg/webservice.php",
+	"db_host" : "localhost",
+	"db_user" : "etalon_admin",
+	"db_pass" : "klK1LJwl42a4",
+	"db_name" : "etalon"
+}

@@ -1,0 +1,69 @@
+# ===========================================
+# Toktogul Billing CRM - .gitignore
+# ===========================================
+
+# ================== DATABASE ==================
+# SQL дампы и бэкапы базы данных
+*.sql
+!libraries/**/*.sql
+!schema/**/*.sql
+
+# ================== BACKUPS ==================
+*.tar.gz
+*.tar
+*.zip
+*.bak
+*.backup
+
+# ================== DATA FILES ==================
+# Excel файлы с данными
+*.xlsx
+*.xls
+*.csv
+
+# ================== CONFIGS WITH SECRETS ==================
+# Конфиги с паролями и секретами (используйте .example файлы)
+config.inc.php
+config_override.php
+config.csrf-secret.php
+
+# ================== USER DATA ==================
+# Привилегии пользователей
+user_privileges/
+
+# ================== CACHE & LOGS ==================
+cache/
+logs/
+*.log
+
+# ================== STORAGE ==================
+# Загруженные файлы и данные
+storage/
+gupshup_logs/
+
+# ================== UPLOADED FILES ==================
+PHPExcel/*.xlsx
+page_loader_elehant/files/
+
+# ================== BOT ==================
+# Telegram bot (отдельный проект)
+bot/
+
+# ================== TEST & TEMP ==================
+test/templates_c/
+cronfile/
+
+# ================== IDE & OS ==================
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ================== DEPENDENCIES ==================
+# Если используете composer
+# vendor/
+
+# Node modules (если большие)
+# node_modules/

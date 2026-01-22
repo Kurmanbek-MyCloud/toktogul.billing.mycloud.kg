@@ -1,0 +1,113 @@
+<?php
+/*********************************************************************************
+ * Toktogul Billing CRM - Configuration Template
+ *
+ * ИНСТРУКЦИЯ:
+ * 1. Скопируйте этот файл как config.inc.php
+ * 2. Заполните все значения помеченные как YOUR_*
+ * 3. Сгенерируйте уникальный application_unique_key
+ ********************************************************************************/
+
+set_time_limit(0);
+
+// Error reporting для production
+version_compare(PHP_VERSION, '5.5.0') <= 0 ? error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED & E_ERROR) : error_reporting(E_WARNING & ~E_NOTICE & ~E_DEPRECATED & E_ERROR & ~E_STRICT);
+
+include ('vtigerversion.php');
+
+ini_set('memory_limit', '512M');
+
+// Calendar and UI settings
+$CALENDAR_DISPLAY = 'true';
+$USE_RTE = 'true';
+
+// Helpdesk support settings
+$HELPDESK_SUPPORT_EMAIL_ID = 'YOUR_SUPPORT_EMAIL@example.com';
+$HELPDESK_SUPPORT_NAME = 'Support Team';
+$HELPDESK_SUPPORT_EMAIL_REPLY_ID = $HELPDESK_SUPPORT_EMAIL_ID;
+
+// ===========================================
+// DATABASE CONFIGURATION
+// ===========================================
+$dbconfig['db_server'] = 'localhost';           // Database server (localhost или IP)
+$dbconfig['db_port'] = ':3306';                 // Port с двоеточием
+$dbconfig['db_username'] = 'YOUR_DB_USER';      // Имя пользователя БД
+$dbconfig['db_password'] = 'YOUR_DB_PASSWORD';  // Пароль БД
+$dbconfig['db_name'] = 'YOUR_DB_NAME';          // Имя базы данных
+$dbconfig['db_type'] = 'mysqli';
+$dbconfig['db_status'] = 'true';
+
+$dbconfig['db_hostname'] = $dbconfig['db_server'] . $dbconfig['db_port'];
+$dbconfig['log_sql'] = false;
+
+// DB options
+$dbconfigoption['persistent'] = true;
+$dbconfigoption['autofree'] = false;
+$dbconfigoption['debug'] = 0;
+$dbconfigoption['seqname_format'] = '%s_seq';
+$dbconfigoption['portability'] = 0;
+$dbconfigoption['ssl'] = false;
+
+$host_name = $dbconfig['db_hostname'];
+
+// ===========================================
+// SITE CONFIGURATION
+// ===========================================
+$site_URL = 'https://YOUR_DOMAIN.com/';         // URL сайта с / в конце
+$PORTAL_URL = $site_URL . '/customerportal';
+$root_directory = '/var/www/YOUR_PROJECT_PATH/'; // Полный путь к проекту с / в конце
+
+// Directory settings
+$cache_dir = 'cache/';
+$tmp_dir = 'cache/images/';
+$import_dir = 'cache/import/';
+$upload_dir = 'cache/upload/';
+
+// Upload settings
+$upload_maxsize = 3145728; // 3MB
+$allow_exports = 'all';
+$upload_badext = array('php', 'php3', 'php4', 'php5', 'pl', 'cgi', 'py', 'asp', 'cfm', 'js', 'vbs', 'html', 'htm', 'exe', 'bin', 'bat', 'sh', 'dll', 'phps', 'phtml', 'xhtml', 'rb', 'msi', 'jsp', 'shtml', 'sth', 'shtm');
+
+// List view settings
+$list_max_entries_per_page = '100';
+$history_max_viewed = '5';
+
+// Default module settings
+$default_module = 'Flats';
+$default_action = 'index';
+$default_theme = 'softed';
+
+// Login defaults (оставьте пустыми для production)
+$default_user_name = '';
+$default_password = '';
+$create_default_user = false;
+
+// Currency and localization
+$currency_name = 'Kyrgyzstan, Soms';
+$default_charset = 'UTF-8';
+$default_language = 'ru_ru';
+
+// UI settings
+$display_empty_home_blocks = false;
+$disable_stats_tracking = false;
+
+// ===========================================
+// SECURITY
+// ===========================================
+// Сгенерируйте уникальный ключ: md5(uniqid(rand(), true))
+$application_unique_key = 'YOUR_UNIQUE_KEY_HERE';
+
+// List view settings
+$listview_max_textlength = '40';
+$php_max_execution_time = 0;
+
+// Timezone
+$default_timezone = 'Asia/Almaty';
+if (isset($default_timezone) && function_exists('date_default_timezone_set')) {
+    @date_default_timezone_set($default_timezone);
+}
+
+// Layout
+$default_layout = 'v7';
+
+include_once 'config.security.php';

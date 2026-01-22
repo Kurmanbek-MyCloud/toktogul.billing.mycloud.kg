@@ -1,0 +1,33 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=toktogul_bill2
+      - DB_USER=root
+      - DB_PASSWORD=root
+
+  db:
+    image: mariadb:10.6
+    platform: linux/arm64
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: toktogul_bill2
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Положите дамп БД в ./db_dump/ и раскомментируйте:
+      # - ./db_dump:/docker-entrypoint-initdb.d
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --sql-mode=""
+
+volumes:
+  mysql_data:

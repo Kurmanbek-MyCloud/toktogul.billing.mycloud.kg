@@ -1,0 +1,15 @@
+{
+    "Name":"Имя",
+    "Primary Email":"Основной Email",
+    "Secondary Email":"Другой Email",
+    "Mobile Phone":"Мобильный тел.",
+    "Office Phone":"Рабочий тел.",
+    "_start for CompanyInfo":"keys",
+    "Website":"Веб-сайт",
+    "Email":"Основной Email",
+    "Phone":"Основной Телефон",
+    "Personal Details":"Личная Информация",
+    "Company Details":"Сведения о Компании",
+    "Primary Phone":"Основной Телефон",
+    "Primary Email":"Основной Email"
+}
