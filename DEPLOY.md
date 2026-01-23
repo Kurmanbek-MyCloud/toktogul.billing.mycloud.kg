@@ -109,7 +109,15 @@ docker-compose exec web php scripts/init-privileges.php
 
 Этот скрипт создаст файлы `user_privileges_X.php` и `sharing_privileges_X.php` для всех пользователей.
 
-#### Шаг 9. Проверка
+#### Шаг 9. Инициализация лог файлов
+
+```bash
+docker-compose exec web php scripts/init-logs.php
+```
+
+Этот скрипт создаст все необходимые лог файлы и установит права доступа.
+
+#### Шаг 10. Проверка
 
 Откройте в браузере: **http://localhost:8000**
 
@@ -155,8 +163,9 @@ mkdir -p cache/images cache/import cache/upload storage logs user_privileges db_
 # Запуск
 docker-compose up -d
 
-# ВАЖНО: После запуска инициализируйте привилегии
+# ВАЖНО: После запуска инициализируйте привилегии и логи
 docker-compose exec web php scripts/init-privileges.php
+docker-compose exec web php scripts/init-logs.php
 ```
 
 ---
@@ -286,7 +295,8 @@ docker-compose exec web php -r "echo crypt('admin', '\$1\$ad000000\$');" | xargs
 ├── docker-compose.yml      # Docker конфигурация
 ├── Dockerfile              # PHP + Apache образ
 ├── scripts/
-│   └── init-privileges.php # Скрипт инициализации привилегий
+│   ├── init-privileges.php # Скрипт инициализации привилегий
+│   └── init-logs.php       # Скрипт инициализации лог файлов
 ├── includes/
 │   └── runtime/
 │       └── cache/
@@ -312,6 +322,7 @@ docker-compose exec web php -r "echo crypt('admin', '\$1\$ad000000\$');" | xargs
 - [ ] Раскомментировать volume для `db_dump` в `docker-compose.yml`
 - [ ] Запустить `docker-compose up -d`
 - [ ] **Запустить `docker-compose exec web php scripts/init-privileges.php`**
+- [ ] **Запустить `docker-compose exec web php scripts/init-logs.php`**
 - [ ] Открыть http://localhost:8000
 
 ---
@@ -386,6 +397,12 @@ sudo chmod -R 775 cache/ storage/ logs/ user_privileges/
 ```bash
 cd /var/www/toktogul.billing.mycloud.kg
 php scripts/init-privileges.php
+```
+
+### 6. Инициализация лог файлов
+
+```bash
+php scripts/init-logs.php
 ```
 
 ---
