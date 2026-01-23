@@ -13,7 +13,7 @@
 $rootDir = dirname(__DIR__);
 
 // Проверка на путь
-var_dump($root_dir);
+var_dump($rootDir);
 exit;
 
 // Список лог файлов которые нужно создать
