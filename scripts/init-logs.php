@@ -14,7 +14,7 @@ $rootDir = dirname(__DIR__);
 
 // Проверка на путь
 var_dump($rootDir);
-exit;
+// exit;
 
 // Список лог файлов которые нужно создать
 $logFiles = [
