@@ -3,9 +3,12 @@
 // Делал Курманбек. Если будут вопросы пишите мне! (17.01.2026)
 // Логику не трогать !!!
 
+var_dump('Test - 1');
+
 require_once 'includes/Loader.php';
 require_once 'include/utils/utils.php';
 require_once 'Logger.php';
+var_dump('Test - 1');
 
 vimport('includes.http.Request');
 vimport('includes.runtime.Globals');
@@ -23,18 +26,6 @@ $without_service_logs = []; // Логи для домов без услуг
 $without_meters_logs = []; // Логи для домов без счетчиков
 
 
-$res = $adb->pquery("SELECT DISTINCT c.contactid, fcf.flatsid, fcf.cf_1448, fcf.cf_1261, f.flat, fcf.cf_1420, fcf.cf_1454  
-                        FROM vtiger_flats f
-                        INNER JOIN vtiger_flatscf fcf ON fcf.flatsid = f.flatsid
-                        INNER JOIN vtiger_crmentity crm ON crm.crmid = f.flatsid
-                        LEFT JOIN vtiger_contactdetails c ON c.contactid = fcf.cf_1235
-                        LEFT JOIN vtiger_contactscf cf ON cf.contactid = c.contactid
-                        LEFT JOIN vtiger_crmentity ccrm on cf.contactid = ccrm.crmid
-                        WHERE crm.deleted = 0 
-                        AND (ccrm.deleted = 0 OR ccrm.deleted IS NULL)
-                        ORDER BY fcf.cf_1448 ", array()); // Поиск данных по улицам
-
-
 // $res = $adb->pquery("SELECT DISTINCT c.contactid, fcf.flatsid, fcf.cf_1448, fcf.cf_1261, f.flat, fcf.cf_1420, fcf.cf_1454  
 //                         FROM vtiger_flats f
 //                         INNER JOIN vtiger_flatscf fcf ON fcf.flatsid = f.flatsid
@@ -42,9 +33,21 @@ $res = $adb->pquery("SELECT DISTINCT c.contactid, fcf.flatsid, fcf.cf_1448, fcf.
 //                         LEFT JOIN vtiger_contactdetails c ON c.contactid = fcf.cf_1235
 //                         LEFT JOIN vtiger_contactscf cf ON cf.contactid = c.contactid
 //                         LEFT JOIN vtiger_crmentity ccrm on cf.contactid = ccrm.crmid
-//                         WHERE crm.deleted = 0 AND fcf.flatsid = 42225
+//                         WHERE crm.deleted = 0 
 //                         AND (ccrm.deleted = 0 OR ccrm.deleted IS NULL)
 //                         ORDER BY fcf.cf_1448 ", array()); // Поиск данных по улицам
+
+
+$res = $adb->pquery("SELECT DISTINCT c.contactid, fcf.flatsid, fcf.cf_1448, fcf.cf_1261, f.flat, fcf.cf_1420, fcf.cf_1454  
+                        FROM vtiger_flats f
+                        INNER JOIN vtiger_flatscf fcf ON fcf.flatsid = f.flatsid
+                        INNER JOIN vtiger_crmentity crm ON crm.crmid = f.flatsid
+                        LEFT JOIN vtiger_contactdetails c ON c.contactid = fcf.cf_1235
+                        LEFT JOIN vtiger_contactscf cf ON cf.contactid = c.contactid
+                        LEFT JOIN vtiger_crmentity ccrm on cf.contactid = ccrm.crmid
+                        WHERE crm.deleted = 0 AND fcf.flatsid = 135593
+                        AND (ccrm.deleted = 0 OR ccrm.deleted IS NULL)
+                        ORDER BY fcf.cf_1448 ", array()); // Поиск данных по улицам
 
 
 
@@ -396,10 +399,26 @@ function add_meters_to_service($invoice_id, $service_id, $flatid, $listprice, $a
 
 function add_service_to_invoice($invoice_id, $service_id, $prev_md, $current_md, $listprice, $accrual_base, $quantity, $tax_percent)
 {
+    global $adb, $logger;
 
-    $margin = ($listprice * $quantity);
+    $margin_without_tax = ($listprice * $quantity);  // Сумма БЕЗ налога (база)
 
-    global $adb;
+    // Расчёт налога (налог включён в итоговую сумму)
+    // 1. Итого = база × (1 + процент/100) - добавляем налог к базе
+    // 2. Налог = итого × процент / (100 + процент) - формула "налог включён"
+    $tax_amount = 0;
+    if ($tax_percent > 0) {
+        $margin = $margin_without_tax * (1 + $tax_percent / 100);  // Итого С налогом
+        $tax_amount = $margin * $tax_percent / (100 + $tax_percent);  // Налог включён
+    } else {
+        $margin = $margin_without_tax;
+    }
+
+    // Логирование налога
+    if (isset($logger)) {
+        $logger->log("НАЛОГ: Invoice ID: $invoice_id, Service ID: $service_id, База: $accrual_base, Сумма без налога: " . round($margin_without_tax, 2) . ", Налог $tax_percent%: " . round($tax_amount, 2) . ", Итого с налогом: " . round($margin, 2));
+    }
+
     $sql = "INSERT INTO vtiger_inventoryproductrel(id, productid, quantity, listprice, margin, accrual_base, previous_reading, current_reading, tax1) VALUES(?,?,?,?,?,?,?,?,?)"; // В pre_tax_total записывается пеня
 
     $params = array($invoice_id, $service_id, $quantity, $listprice, $margin, $accrual_base, $prev_md, $current_md, $tax_percent);
@@ -412,6 +431,8 @@ function add_service_to_invoice($invoice_id, $service_id, $prev_md, $current_md,
     if ($total) {
         update_invoice_total_field($total, $invoice_id);
     }
+
+    return $tax_amount; // Возвращаем сумму налога для возможного использования
 }
 
 function update_invoice_total_field($total, $invoiceid)

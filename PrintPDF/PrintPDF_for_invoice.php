@@ -388,15 +388,15 @@ function getHtml($invoiceId, $debug = false) {
 		}
 
 		$tax1 = (float)($row['tax1'] ?? 0);
-		$taxDivisor = 1 + ($tax1 / 100);
-		$listPriceNet = ($taxDivisor != 0) ? ($listPrice / $taxDivisor) : $listPrice;
-		$listPrice = round($listPriceNet, 2);
-		// ВАЖНО: налог считаем от НЕокругленных значений, иначе теряется копейка (например 2.27 -> 2.26)
+		// Налог добавляется к цене сверху (не включён в цену)
+		// listPrice - это тариф БЕЗ налога (база)
+		// margin = listPrice * quantity + налог
+		$margin_without_tax = $listPriceRaw * $quantityRaw;
 		$tax_final = ($tax1 > 0)
-			? round($marginRaw - ($listPriceNet * $quantityRaw), 2)
+			? round($margin_without_tax * $tax1 / 100, 2)
 			: 0;
 		$listPriceCell = $debug
-			? ('net:' . $listPrice . '<br><span style="font-size:6px">raw:' . $listPriceRawRounded . ', tax:' . $tax1 . '%</span>')
+			? ('base:' . $listPriceRawRounded . '<br><span style="font-size:6px">tax:' . $tax1 . '%</span>')
 			: (string)$listPriceRawRounded;
 		// var_dump($listPrice);
 		// var_dump($tax_final);

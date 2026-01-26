@@ -307,7 +307,8 @@ function getAssociatedProducts($module, $focus, $seid = '', $refModuleName = fal
 			$qty = 1;
 
 		//calculate productTotal
-		$productTotal = $qty * $listprice;
+		// Если есть margin (сумма с налогом), используем его, иначе рассчитываем как qty * listprice
+		$productTotal = ($margin && $margin > 0) ? $margin : ($qty * $listprice);
 
 		//Delete link in First column
 		if ($i != 1) {
