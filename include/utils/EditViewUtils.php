@@ -386,6 +386,14 @@ function getAssociatedProducts($module, $focus, $seid = '', $refModuleName = fal
 			// текущее показание
 			$currentReading = $adb->query_result($result, $i - 1, 'current_reading');
 			$product_Detail[$i]['currentReading' . $i] = $currentReading;
+
+			// ID предыдущего показания (для связи с MetersData)
+			$previousReadingId = $adb->query_result($result, $i - 1, 'previous_reading_id');
+			$product_Detail[$i]['previousReadingId' . $i] = $previousReadingId;
+
+			// ID текущего показания (для связи с MetersData)
+			$currentReadingId = $adb->query_result($result, $i - 1, 'current_reading_id');
+			$product_Detail[$i]['currentReadingId' . $i] = $currentReadingId;
 		}
 
 

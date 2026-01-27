@@ -321,10 +321,12 @@ function add_meters_to_service($invoice_id, $service_id, $flatid, $listprice, $a
                               LIMIT 1", array($metersid, $flatid, $next_month_year, $next_month_num));
                 
                 $current_reading_date = null; // Дата текущего показания для логирования
+                $current_metersdataid = null; // ID текущего показания
                 if ($adb->num_rows($current_meter_data) > 0) {
                     $current_md_raw = $adb->query_result($current_meter_data, 0, 'current_reading');
                     $current_md = ($current_md_raw !== null && $current_md_raw !== '') ? floatval($current_md_raw) : null;
                     $current_reading_date = $adb->query_result($current_meter_data, 0, 'current_reading_date');
+                    $current_metersdataid = $adb->query_result($current_meter_data, 0, 'metersdataid'); // Получаем ID текущего показания
                     $current_from_next_month = true;
                 } else {
                     // Если не найдено показание за следующий месяц, счет не создаем
@@ -363,8 +365,8 @@ function add_meters_to_service($invoice_id, $service_id, $flatid, $listprice, $a
                     $logger->log("Показания счетчика - ЛС: $ls, Улица: $currentStreet, Дом: $number_flat, ID счетчика: $metersid, Колодец: $well | Период: $period_readable ($period_year-$period_month_num) | Предыдущее (за период): $prev_md (дата: $prev_reading_date), Текущее (за $next_month_readable): $current_md$current_date_info$current_source, Разница: $quantity, ID показания: $metersdataid");
                 }
                 
-                add_service_to_invoice($invoice_id, $service_id, $prev_md, $current_md, $listprice, $accrual_base, $quantity, $tax_percent);
-                
+                add_service_to_invoice($invoice_id, $service_id, $prev_md, $current_md, $listprice, $accrual_base, $quantity, $tax_percent, $metersdataid, $current_metersdataid);
+
                 // Обновляем флаг использования показаний для каждого счетчика
                 if ($metersdataid != null) {
                     try {
@@ -397,7 +399,7 @@ function add_meters_to_service($invoice_id, $service_id, $flatid, $listprice, $a
 }
 
 
-function add_service_to_invoice($invoice_id, $service_id, $prev_md, $current_md, $listprice, $accrual_base, $quantity, $tax_percent)
+function add_service_to_invoice($invoice_id, $service_id, $prev_md, $current_md, $listprice, $accrual_base, $quantity, $tax_percent, $prev_reading_id = null, $current_reading_id = null)
 {
     global $adb, $logger;
 
@@ -419,9 +421,10 @@ function add_service_to_invoice($invoice_id, $service_id, $prev_md, $current_md,
         $logger->log("НАЛОГ: Invoice ID: $invoice_id, Service ID: $service_id, База: $accrual_base, Сумма без налога: " . round($margin_without_tax, 2) . ", Налог $tax_percent%: " . round($tax_amount, 2) . ", Итого с налогом: " . round($margin, 2));
     }
 
-    $sql = "INSERT INTO vtiger_inventoryproductrel(id, productid, quantity, listprice, margin, accrual_base, previous_reading, current_reading, tax1) VALUES(?,?,?,?,?,?,?,?,?)"; // В pre_tax_total записывается пеня
+    // Добавлены поля previous_reading_id и current_reading_id для связи с MetersData (26.01.2026)
+    $sql = "INSERT INTO vtiger_inventoryproductrel(id, productid, quantity, listprice, margin, accrual_base, previous_reading, current_reading, tax1, previous_reading_id, current_reading_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)";
 
-    $params = array($invoice_id, $service_id, $quantity, $listprice, $margin, $accrual_base, $prev_md, $current_md, $tax_percent);
+    $params = array($invoice_id, $service_id, $quantity, $listprice, $margin, $accrual_base, $prev_md, $current_md, $tax_percent, $prev_reading_id, $current_reading_id);
     $adb->pquery($sql, $params);
     // echo $listprice."- listprice<br>";
     // echo $quantity."- quantity<br>";

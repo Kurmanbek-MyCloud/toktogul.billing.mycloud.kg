@@ -109,7 +109,172 @@ Inventory_Edit_Js("Invoice_Edit_Js",{},{
         registerBasicEvents: function(container){
             this._super(container);
             this.registerForTogglingBillingandShippingAddress();
-            this.registerEventForCopyAddress();  
+            this.registerEventForCopyAddress();
+            this.registerMeterReadingsEvents(container);
+        },
+
+        /**
+         * Регистрация событий для работы с показаниями счётчиков
+         */
+        registerMeterReadingsEvents: function(container) {
+            var self = this;
+            var form = this.getForm();
+
+            // Загружаем показания при загрузке страницы
+            var flatIdField = form.find('[name="cf_1265"]');
+            if (flatIdField.length && flatIdField.val()) {
+                self.loadMeterReadings(flatIdField.val());
+            }
+
+            // Обновляем показания при изменении объекта (дома)
+            flatIdField.on('change', function() {
+                var flatId = jQuery(this).val();
+                if (flatId) {
+                    self.loadMeterReadings(flatId);
+                } else {
+                    self.clearReadingSelects();
+                }
+            });
+
+            // Следим за событием выбора референса для cf_1265
+            form.find('[name="cf_1265"]').on(Vtiger_Edit_Js.referenceSelectionEvent, function(e, data) {
+                if (data && data.id) {
+                    self.loadMeterReadings(data.id);
+                }
+            });
+
+            // Обработка выбора показания в селекте
+            jQuery(document).on('change', '.readingSelect', function() {
+                var select = jQuery(this);
+                var row = select.data('row');
+                var type = select.data('type'); // 'previous' или 'current'
+                var selectedOption = select.find('option:selected');
+                var readingId = select.val();
+                var readingValue = selectedOption.data('value') || '';
+
+                // Обновляем скрытые поля
+                if (type === 'previous') {
+                    jQuery('#previousReading' + row).val(readingValue);
+                    jQuery('#previousReadingId' + row).val(readingId);
+                } else if (type === 'current') {
+                    jQuery('#currentReading' + row).val(readingValue);
+                    jQuery('#currentReadingId' + row).val(readingId);
+                }
+
+                // Пересчитываем количество (разницу между показаниями)
+                self.recalculateQuantity(row);
+            });
+        },
+
+        /**
+         * Загрузка показаний счётчиков по ID дома
+         */
+        loadMeterReadings: function(flatId) {
+            var self = this;
+            var params = {
+                module: 'Invoice',
+                action: 'GetMeterReadings',
+                flat_id: flatId
+            };
+
+            app.request.post({data: params}).then(
+                function(error, response) {
+                    if (error === null && response && response.success) {
+                        self.populateReadingSelects(response.readings);
+                    }
+                }
+            );
+        },
+
+        /**
+         * Заполнение выпадающих списков показаниями
+         */
+        populateReadingSelects: function(readings) {
+            var self = this;
+            var prevSelects = jQuery('.previousReadingSelect');
+            var currSelects = jQuery('.currentReadingSelect');
+
+            // Сохраняем текущие выбранные значения
+            var selectedPrev = {};
+            var selectedCurr = {};
+
+            prevSelects.each(function() {
+                var row = jQuery(this).data('row');
+                selectedPrev[row] = jQuery(this).val();
+            });
+            currSelects.each(function() {
+                var row = jQuery(this).data('row');
+                selectedCurr[row] = jQuery(this).val();
+            });
+
+            // Формируем опции
+            var options = '<option value="">-- Выберите --</option>';
+            jQuery.each(readings, function(index, reading) {
+                options += '<option value="' + reading.id + '" ' +
+                    'data-value="' + reading.value + '" ' +
+                    'data-date="' + reading.date + '" ' +
+                    'data-meter="' + reading.meter_id + '" ' +
+                    'data-well="' + reading.well_name + '">' +
+                    reading.label +
+                    '</option>';
+            });
+
+            // Обновляем все селекты и синхронизируем скрытые поля
+            prevSelects.each(function() {
+                var row = jQuery(this).data('row');
+                var currentVal = selectedPrev[row];
+                jQuery(this).html(options);
+                if (currentVal) {
+                    jQuery(this).val(currentVal);
+                    // Синхронизируем скрытое поле с актуальным значением из выбранной опции
+                    var selectedOption = jQuery(this).find('option:selected');
+                    var readingValue = selectedOption.data('value') || '';
+                    jQuery('#previousReading' + row).val(readingValue);
+                }
+            });
+
+            currSelects.each(function() {
+                var row = jQuery(this).data('row');
+                var currentVal = selectedCurr[row];
+                jQuery(this).html(options);
+                if (currentVal) {
+                    jQuery(this).val(currentVal);
+                    // Синхронизируем скрытое поле с актуальным значением из выбранной опции
+                    var selectedOption = jQuery(this).find('option:selected');
+                    var readingValue = selectedOption.data('value') || '';
+                    jQuery('#currentReading' + row).val(readingValue);
+                }
+            });
+        },
+
+        /**
+         * Очистка выпадающих списков показаний
+         */
+        clearReadingSelects: function() {
+            var emptyOption = '<option value="">-- Выберите --</option>';
+            jQuery('.readingSelect').html(emptyOption);
+        },
+
+        /**
+         * Пересчёт количества (разницы показаний)
+         */
+        recalculateQuantity: function(row) {
+            var self = this;
+            var prevValue = parseFloat(jQuery('#previousReading' + row).val()) || 0;
+            var currValue = parseFloat(jQuery('#currentReading' + row).val()) || 0;
+            var quantity = currValue - prevValue;
+
+            if (quantity < 0) {
+                quantity = 0;
+            }
+
+            jQuery('#qty' + row).val(quantity.toFixed(3));
+
+            // Получаем строку line item и вызываем пересчёт итогов
+            var lineItemRow = jQuery('#row' + row);
+            if (lineItemRow.length) {
+                self.quantityChangeActions(lineItemRow);
+            }
         },
 });
     

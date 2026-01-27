@@ -23,6 +23,8 @@
     {assign var="accrualBase" value="accrualBase"|cat:$row_no}
     {assign var="previousReading" value="previousReading"|cat:$row_no}
     {assign var="currentReading" value="currentReading"|cat:$row_no}
+    {assign var="previousReadingId" value="previousReadingId"|cat:$row_no}
+    {assign var="currentReadingId" value="currentReadingId"|cat:$row_no}
 
     {* SalesPlatform.ru begin *}
     {assign var="unitPrice" value="unitPrice"|cat:$row_no}
@@ -144,13 +146,35 @@
 	</td>
 
 	<td>
-		<input id="{$previousReading}" name="{$previousReading}" type="text" class="smallInputBox inputElement"
-			   value="{$data.$previousReading}">
+		{* Выпадающий список для предыдущего показания *}
+		<select id="{$previousReadingId}_select" class="smallInputBox inputElement readingSelect previousReadingSelect"
+				data-row="{$row_no}" data-type="previous" style="width: 100%; min-width: 120px;">
+			<option value="">-- Выберите --</option>
+			{if $data.$previousReadingId}
+				<option value="{$data.$previousReadingId}" data-value="{$data.$previousReading}" selected>
+					{$data.$previousReading}
+				</option>
+			{/if}
+		</select>
+		{* Скрытые поля для сохранения значений *}
+		<input id="{$previousReading}" name="{$previousReading}" type="hidden" value="{$data.$previousReading}">
+		<input id="{$previousReadingId}" name="{$previousReadingId}" type="hidden" value="{$data.$previousReadingId}">
 	</td>
 
 	<td>
-		<input id="{$currentReading}" name="{$currentReading}" type="text" class="smallInputBox inputElement"
-			   value="{$data.$currentReading}">
+		{* Выпадающий список для текущего показания *}
+		<select id="{$currentReadingId}_select" class="smallInputBox inputElement readingSelect currentReadingSelect"
+				data-row="{$row_no}" data-type="current" style="width: 100%; min-width: 120px;">
+			<option value="">-- Выберите --</option>
+			{if $data.$currentReadingId}
+				<option value="{$data.$currentReadingId}" data-value="{$data.$currentReading}" selected>
+					{$data.$currentReading}
+				</option>
+			{/if}
+		</select>
+		{* Скрытые поля для сохранения значений *}
+		<input id="{$currentReading}" name="{$currentReading}" type="hidden" value="{$data.$currentReading}">
+		<input id="{$currentReadingId}" name="{$currentReadingId}" type="hidden" value="{$data.$currentReadingId}">
 	</td>
 
 	<td>

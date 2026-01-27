@@ -686,6 +686,12 @@ function saveInventoryProductDetails(&$focus, $module, $update_prod_stock='false
             $accrualBase = vtlib_purify($_REQUEST['accrualBase'.$i]);
             $previousReading = vtlib_purify($_REQUEST['previousReading'.$i]);
             $currentReading = vtlib_purify($_REQUEST['currentReading'.$i]);
+            // ID показаний для связи с MetersData (26.01.2026)
+            $previousReadingId = vtlib_purify($_REQUEST['previousReadingId'.$i]);
+            $currentReadingId = vtlib_purify($_REQUEST['currentReadingId'.$i]);
+            // Преобразуем пустые значения в NULL
+            $previousReadingId = !empty($previousReadingId) ? $previousReadingId : null;
+            $currentReadingId = !empty($currentReadingId) ? $currentReadingId : null;
         }
 
 		if($module == 'SalesOrder') {
@@ -701,18 +707,18 @@ function saveInventoryProductDetails(&$focus, $module, $update_prod_stock='false
 
 		if ($module == 'Invoice')
         {
-            $query = 'INSERT INTO vtiger_inventoryproductrel 
-            (id, productid, sequence_no, quantity, listprice, 
-            comment, description, purchase_cost, margin, producttotal, 
-            netprice,nettotal,shipping_handling_charge,pre_tax_total, 
-            tax_final,charge_tax_total,deduct_tax_total_amount,grand_total, 
-            accrual_base, previous_reading, current_reading)
-					VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+            $query = 'INSERT INTO vtiger_inventoryproductrel
+            (id, productid, sequence_no, quantity, listprice,
+            comment, description, purchase_cost, margin, producttotal,
+            netprice,nettotal,shipping_handling_charge,pre_tax_total,
+            tax_final,charge_tax_total,deduct_tax_total_amount,grand_total,
+            accrual_base, previous_reading, current_reading, previous_reading_id, current_reading_id)
+					VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
 
             $qparams = array($focus->id,$prod_id,$prod_seq,$qty,$listprice,$comment,$description, $purchaseCost,
                 $margin, $productTotal,$netPrice,$netTotal,$shippingHandlingCharge, $pretaxTotal,
                 $taxFinal,$chargeTaxTotal,$deductTotalAmount,$grandTotal,
-                $accrualBase, $previousReading, $currentReading);
+                $accrualBase, $previousReading, $currentReading, $previousReadingId, $currentReadingId);
         }
         else
         {

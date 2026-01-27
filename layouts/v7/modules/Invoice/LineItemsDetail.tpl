@@ -196,9 +196,27 @@
 
                         <td>{$LINE_ITEM_DETAIL["accrualBase$INDEX"]}</td>
 
-                        <td>{$LINE_ITEM_DETAIL["previousReading$INDEX"]}</td>
+                        <td>
+                            {if $LINE_ITEM_DETAIL["previousReadingId$INDEX"]}
+                                <a href="index.php?module=MetersData&view=Detail&record={$LINE_ITEM_DETAIL["previousReadingId$INDEX"]}"
+                                   target="_blank" title="Перейти к показанию">
+                                    {$LINE_ITEM_DETAIL["previousReading$INDEX"]}
+                                </a>
+                            {else}
+                                {$LINE_ITEM_DETAIL["previousReading$INDEX"]}
+                            {/if}
+                        </td>
 
-                        <td>{$LINE_ITEM_DETAIL["currentReading$INDEX"]}</td> 
+                        <td>
+                            {if $LINE_ITEM_DETAIL["currentReadingId$INDEX"]}
+                                <a href="index.php?module=MetersData&view=Detail&record={$LINE_ITEM_DETAIL["currentReadingId$INDEX"]}"
+                                   target="_blank" title="Перейти к показанию">
+                                    {$LINE_ITEM_DETAIL["currentReading$INDEX"]}
+                                </a>
+                            {else}
+                                {$LINE_ITEM_DETAIL["currentReading$INDEX"]}
+                            {/if}
+                        </td> 
 
                         {if $QUANTITY_VIEWABLE}
                             <td>
